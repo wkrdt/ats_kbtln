@@ -3,12 +3,13 @@ import { useStore } from "../lib/store";
 import { PHASES, hoursSince, fmtDT, WA_PLACEHOLDERS } from "../lib/data";
 import { Icon, Btn, ReasonModal, Modal, Field, inputCls, Empty, SectionTitle, Mono, StackedBar } from "../components/ui";
 
-type Tab = "audit" | "retention" | "automation" | "templates";
+type Tab = "data" | "audit" | "retention" | "automation" | "templates";
 
 export function Governance() {
   const { db } = useStore();
-  const [tab, setTab] = useState<Tab>("audit");
+  const [tab, setTab] = useState<Tab>("data");
   const TABS: { id: Tab; label: string; icon: string }[] = [
+    { id: "data", label: "Data Layer", icon: "db" },
     { id: "audit", label: "Audit Log", icon: "list" },
     { id: "retention", label: "Retention & Deletion", icon: "trash" },
     { id: "automation", label: "Time-Driven Triggers", icon: "zap" },
@@ -26,6 +27,7 @@ export function Governance() {
           </button>
         ))}
       </div>
+      {tab === "data" && <DataLayerTab />}
       {tab === "audit" && <AuditTab />}
       {tab === "retention" && <RetentionTab />}
       {tab === "automation" && <AutomationTab />}
@@ -298,6 +300,126 @@ function AutomationTab() {
 }
 
 /* ---------------- templates ---------------- */
+/* ---------------- data layer ---------------- */
+const SHEET_MAP: { key: keyof import("../lib/data").DB; tab: string; note?: string }[] = [
+  { key: "users", tab: "Users" },
+  { key: "clients", tab: "Clients" },
+  { key: "resources", tab: "SourcingResources" },
+  { key: "requisitions", tab: "Requisitions", note: "phase config lives here in demo; PRD splits it into RequisitionPhaseConfigs" },
+  { key: "candidates", tab: "Candidates" },
+  { key: "applications", tab: "Applications" },
+  { key: "slots", tab: "InterviewSlots" },
+  { key: "interviews", tab: "Interviews", note: "evaluations nested; PRD splits them into InterviewEvaluations" },
+  { key: "audit", tab: "AuditLog" },
+  { key: "retentionLog", tab: "RetentionLog" },
+  { key: "reports", tab: "Reports" },
+  { key: "tokens", tab: "CandidateAccessTokens" },
+  { key: "config", tab: "Config" },
+];
+
+function DataLayerTab() {
+  const { db, resetDemo, toast } = useStore();
+  const [confirmReset, setConfirmReset] = useState(false);
+  const json = useMemo(() => JSON.stringify(db, null, 2), [db]);
+  const sizeKb = (new Blob([json]).size / 1024).toFixed(1);
+  const totalRows = SHEET_MAP.reduce((s, m) => s + (m.key === "config" ? Object.keys(db.config).length : (db[m.key] as unknown[]).length), 0);
+
+  const exportJson = () => {
+    const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+    const el = document.createElement("a");
+    el.href = url; el.download = "tapak-db-snapshot.json"; el.click();
+    URL.revokeObjectURL(url);
+    toast("Database snapshot exported as JSON", "info");
+  };
+
+  return (
+    <div className="space-y-4 anim-rise">
+      <div className="grid lg:grid-cols-[1fr_320px] gap-3">
+        <div className="bg-pine-900 text-paper rounded-xl p-5">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-hono-400 text-pine-950 grid place-items-center shrink-0"><Icon name="db" size={19} /></div>
+            <div>
+              <h4 className="font-display font-extrabold text-lg text-hono-300">Storage engine: browser localStorage</h4>
+              <p className="text-xs text-paper/60 mt-0.5">This build is a working simulation of the PRD's Google stack — every collection below maps 1-to-1 to a production Sheets tab, and every mutation goes through the same audited store functions.</p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {[
+              ["Storage key", "tapak-ats-v1", "localStorage, per-browser"],
+              ["Snapshot size", `${sizeKb} KB`, `${totalRows} rows across 13 tabs`],
+              ["Write path", "audited store", "src/lib/store.tsx → setDb → persist"],
+              ["Reset", "reseed demo", "wipes key, restores seed dataset"],
+            ].map(([k, v, sub]) => (
+              <div key={k} className="rounded-lg bg-white/6 border border-white/8 px-3 py-2">
+                <div className="text-[9px] font-bold uppercase tracking-widest text-paper/40">{k}</div>
+                <div className="font-mono text-[12px] text-moss-100 font-bold mt-0.5">{v}</div>
+                <div className="text-[9.5px] text-paper/45 mt-0.5">{sub}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-card border border-ink-900/8 rounded-xl p-4 flex flex-col">
+          <h4 className="font-display font-bold text-sm text-ink-900 mb-2">Data controls</h4>
+          <p className="text-[11px] text-ink-400 mb-3">Backups are JSON files; Google Sheets is the production target, not a setting in this demo — no spreadsheet URL is configured here.</p>
+          <div className="flex flex-col gap-2 mt-auto">
+            <Btn tone="outline" onClick={exportJson}><Icon name="download" size={13} /> Export database (JSON)</Btn>
+            <Btn tone="dangerSoft" onClick={() => setConfirmReset(true)}><Icon name="refresh" size={13} /> Reset demo data</Btn>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-card border border-ink-900/8 rounded-xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-ink-900/6 flex items-center justify-between">
+          <h4 className="font-display font-bold text-sm text-ink-900">Simulated sheets → production tabs (PRD §4)</h4>
+          <span className="font-mono text-[10px] text-ink-400">{totalRows} rows live</span>
+        </div>
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 divide-x divide-y divide-ink-900/5">
+          {SHEET_MAP.map((m) => {
+            const count = m.key === "config" ? Object.keys(db.config).length : (db[m.key] as unknown[]).length;
+            return (
+              <div key={m.tab} className="px-4 py-3 hover:bg-moss-50/60 transition-colors">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-[13px] text-ink-900">{m.tab}</span>
+                  <span className="font-mono text-[10.5px] font-bold text-moss-700 bg-moss-100 rounded-full px-2 py-0.5 tabular-nums">{count} row{count === 1 ? "" : "s"}</span>
+                </div>
+                <div className="font-mono text-[10px] text-ink-400 mt-0.5">db.{m.key}{m.note ? ` · ${m.note}` : ""}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="bg-card border border-ink-900/8 rounded-xl p-4">
+        <h4 className="font-display font-bold text-sm text-ink-900 mb-2.5 flex items-center gap-2"><Icon name="zap" size={14} className="text-moss-600" /> Connecting a real Google Sheet</h4>
+        <div className="grid md:grid-cols-3 gap-2.5 text-[11.5px] text-ink-600">
+          <div className="rounded-lg bg-paper px-3 py-2.5 border border-ink-900/6">
+            <div className="font-bold text-ink-900 mb-1">1 · Spreadsheet as database</div>
+            Chunk 0 of the PRD creates all 13 tabs with headers via script; tabs are protected so only the web app writes. You configure the spreadsheet ID inside the Apps Script project, not in this UI.
+          </div>
+          <div className="rounded-lg bg-paper px-3 py-2.5 border border-ink-900/6">
+            <div className="font-bold text-ink-900 mb-1">2 · Apps Script as backend</div>
+            Deploy as a web app (execute as admin account). It exposes the same actions this store performs — reads/writes via <span className="font-mono text-[10px]">SpreadsheetApp</span>, files via <span className="font-mono text-[10px]">DriveApp</span>, slots via Calendar API.
+          </div>
+          <div className="rounded-lg bg-paper px-3 py-2.5 border border-ink-900/6">
+            <div className="font-bold text-ink-900 mb-1">3 · Swap the transport</div>
+            This React build's <span className="font-mono text-[10px]">src/lib/store.tsx</span> is the single seam: replace the localStorage persist/load with <span className="font-mono text-[10px]">google.script.run</span> calls (or fetch to the deployed endpoint) and every view keeps working unchanged.
+          </div>
+        </div>
+        <p className="text-[10.5px] text-ink-400 mt-2.5 flex items-center gap-1.5"><Icon name="lock" size={11} /> A static GitHub Pages site can't hold Sheets credentials safely — the Apps Script web app is the piece that owns the sheet ID, OAuth scopes and LockService writes.</p>
+      </div>
+
+      <Modal open={confirmReset} onClose={() => setConfirmReset(false)} title="Reset demo data?"
+        sub="Wipes the tapak-ats-v1 key and restores the seeded dataset (clients, requisitions, candidates, audit history)."
+        footer={<>
+          <Btn tone="ghost" onClick={() => setConfirmReset(false)}>Cancel</Btn>
+          <Btn tone="danger" onClick={() => { resetDemo(); setConfirmReset(false); }}><Icon name="refresh" size={13} /> Reset workspace</Btn>
+        </>}>
+        <p className="text-xs text-ink-600 leading-relaxed">Everything you added — candidates, slots, evaluations, report snapshots, audit entries — will be replaced by the original seed. The action itself is logged as <Mono>DEMO_RESET</Mono>.</p>
+      </Modal>
+    </div>
+  );
+}
+
 function TemplatesTab() {
   const { db, saveTemplate } = useStore();
   const [tpl, setTpl] = useState(db.config.WHATSAPP_INVITE_TEMPLATE || "");
