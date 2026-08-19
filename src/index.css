@@ -1,0 +1,209 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: "Bricolage Grotesque", "IBM Plex Sans", sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-pine-950: #07130f;
+  --color-pine-900: #0c1f1a;
+  --color-pine-850: #10281f;
+  --color-pine-800: #153227;
+  --color-pine-700: #1d4434;
+  --color-pine-600: #2a5a45;
+
+  --color-paper: #eef0e8;
+  --color-paper-deep: #e5e8dd;
+  --color-card: #fbfbf6;
+
+  --color-ink-900: #14201a;
+  --color-ink-700: #2c3a33;
+  --color-ink-500: #52635a;
+  --color-ink-400: #71827a;
+  --color-ink-300: #9fada5;
+
+  --color-moss-50: #eef6f0;
+  --color-moss-100: #d8ecdf;
+  --color-moss-200: #b2d8c2;
+  --color-moss-300: #83bd9e;
+  --color-moss-400: #4f9e77;
+  --color-moss-500: #2c835b;
+  --color-moss-600: #1e6d4a;
+  --color-moss-700: #17573c;
+  --color-moss-800: #124430;
+  --color-moss-900: #0d3325;
+
+  --color-hono-100: #fbeed3;
+  --color-hono-300: #f0c87e;
+  --color-hono-400: #e8a33d;
+  --color-hono-500: #d18a1f;
+  --color-hono-600: #a96a12;
+  --color-hono-800: #6b440e;
+
+  --color-rust-100: #f9e3de;
+  --color-rust-400: #d96a5b;
+  --color-rust-500: #c14b3c;
+  --color-rust-600: #a03a2e;
+  --color-rust-800: #6e2a21;
+
+  --color-river-100: #dde9f2;
+  --color-river-400: #6b93b8;
+  --color-river-600: #3f6488;
+  --color-river-800: #2b4560;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink-900);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #d8ecdf;
+  color: #0d3325;
+}
+
+/* ---------- texture layers ---------- */
+.bg-workspace {
+  background-color: var(--color-paper);
+  background-image:
+    radial-gradient(1100px 500px at 85% -10%, rgba(44, 131, 91, 0.09), transparent 60%),
+    radial-gradient(800px 420px at -10% 110%, rgba(232, 163, 61, 0.08), transparent 55%),
+    radial-gradient(rgba(20, 32, 26, 0.055) 1px, transparent 1px);
+  background-size: auto, auto, 22px 22px;
+}
+.bg-shell {
+  background-color: var(--color-pine-900);
+  background-image:
+    radial-gradient(600px 300px at 110% -20%, rgba(79, 158, 119, 0.16), transparent 60%),
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.014) 0 2px, transparent 2px 9px);
+}
+
+/* ---------- scrollbars ---------- */
+.scroll-thin::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: #c3cbbd;
+  border-radius: 8px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------- motion ---------- */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes drawer-in {
+  from {
+    transform: translateX(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+@keyframes modal-in {
+  from {
+    transform: translateY(14px) scale(0.97);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+@keyframes toast-in {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+@keyframes ping-dot {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+@keyframes bar-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.anim-rise {
+  animation: rise-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.anim-drawer {
+  animation: drawer-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.anim-modal {
+  animation: modal-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.anim-toast {
+  animation: toast-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.anim-bar {
+  transform-origin: left;
+  animation: bar-grow 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.live-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: ping-dot 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.stagger > * {
+  animation: rise-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.02s; }
+.stagger > *:nth-child(2) { animation-delay: 0.07s; }
+.stagger > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger > *:nth-child(4) { animation-delay: 0.17s; }
+.stagger > *:nth-child(5) { animation-delay: 0.22s; }
+.stagger > *:nth-child(6) { animation-delay: 0.27s; }
+.stagger > *:nth-child(7) { animation-delay: 0.32s; }
+.stagger > *:nth-child(8) { animation-delay: 0.37s; }
+
+/* ---------- print ---------- */
+@media print {
+  body {
+    background: #fff;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-sheet {
+    display: block !important;
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+}
