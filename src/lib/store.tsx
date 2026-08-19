@@ -12,7 +12,7 @@ import type {
 const LS_KEY = "tapak-ats-v1";
 
 export type Toast = { id: number; msg: string; tone: "ok" | "warn" | "err" | "info" };
-export type View = "pipeline" | "candidates" | "requisitions" | "clients" | "interviews" | "reports" | "governance";
+export type View = "pipeline" | "candidates" | "requisitions" | "clients" | "interviews" | "reports" | "governance" | "integration";
 
 interface Store {
   db: DB;

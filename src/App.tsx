@@ -8,6 +8,7 @@ import { Requisitions, Clients } from "./views/Requisitions";
 import { Interviews } from "./views/Interviews";
 import { Reports } from "./views/Reports";
 import { Governance } from "./views/Governance";
+import { Integration } from "./views/Integration";
 import { Portal } from "./views/Portal";
 
 function Workspace() {
@@ -26,6 +27,7 @@ function Workspace() {
         {view === "interviews" && <Interviews />}
         {view === "reports" && <Reports />}
         {view === "governance" && <Governance />}
+        {view === "integration" && <Integration />}
       </Shell>
       <CandidateDrawer candidateId={globalCand} onClose={() => setGlobalCand(null)} />
       <ToastHost />

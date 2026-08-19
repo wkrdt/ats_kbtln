@@ -13,6 +13,7 @@ const NAV: { id: View; label: string; icon: string; roles: Role[] }[] = [
   { id: "interviews", label: "Interviews", icon: "video", roles: ["CONSULTANT"] },
   { id: "reports", label: "Client Reporting", icon: "file", roles: ["CONSULTANT", "CLIENT_MASTER", "CLIENT_HIRING"] },
   { id: "governance", label: "Audit & Retention", icon: "shield", roles: ["CONSULTANT"] },
+  { id: "integration", label: "Google Integration", icon: "cloud", roles: ["CONSULTANT"] },
 ];
 
 const ROLE_LABEL: Record<Role, string> = {
